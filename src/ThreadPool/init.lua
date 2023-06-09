@@ -35,6 +35,27 @@ function threadPool:Join()
     coroutine.yield()
 end
 
+function threadPool:Destroy()
+    self:Join()
+    self.bindableEventConnection:Disconnect()
+    self.heartbeatConnection:Disconnect()
+    self.threadPool:Destroy()
+    for attribute, value in self do
+        attribute = nil
+    end
+    self = nil
+end
+
+function threadPool:ForceDestroy()
+    self.bindableEventConnection:Disconnect()
+    self.heartbeatConnection:Disconnect()
+    self.threadPool:Destroy()
+    for attribute, value in self do
+        attribute = nil
+    end
+    self = nil
+end
+
 -- Actor Creation
 local function CreateActor(parent, id)
     local actor = script[environment]:Clone()
@@ -80,9 +101,11 @@ local function CreateThreadPool(threads, module, sharedTable, callbackFunc)
     self._taskQueue = {}
     self._joinThreads = {}
 
-    self.freeActor.Event:Connect(function(id, params)
+    self.bindableEventConnection = self.freeActor.Event:Connect(function(id, params)
         table.insert(self._freeActors, id)
-        task.spawn(callbackFunc, params)
+        if callbackFunc then
+            task.spawn(callbackFunc, params)
+        end
         if #self._taskQueue == 0 and #self._freeActors == self._actorHighestId then
             for _, threads in self._joinThreads do
                 task.spawn(threads)
@@ -90,7 +113,7 @@ local function CreateThreadPool(threads, module, sharedTable, callbackFunc)
         end
     end)
 
-    RunService.Heartbeat:Connect(function()
+    self.heartbeatConnection = RunService.Heartbeat:Connect(function()
         if self._taskQueue[1] and self._freeActors[1] then
             local actorId = table.remove(self._freeActors, 1)
             local actor = self._actors[actorId]
