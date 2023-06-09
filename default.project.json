@@ -1,7 +1,6 @@
 {
-    "name": "multithreadpool-luau",
+    "name": "ThreadPool",
     "tree": {
-        "$className": "Model",
-        "$path": "src"
+        "$path": "src/ThreadPool"
     }
 }
