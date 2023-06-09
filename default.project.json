@@ -1,0 +1,7 @@
+{
+    "name": "multithreadpool-luau",
+    "tree": {
+        "$className": "Model",
+        "$path": "src"
+    }
+}
